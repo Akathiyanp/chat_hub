@@ -23,7 +23,7 @@ export const CodeBlock = ({ lang, code }: CodeBlockProps) => {
   }, [code, language]);
 
   return (
-    <div className="hljs-wrapper">
+    <div className="bg-black/20 rounded-2xl p-4">
       <div className="pl-4 pr-2 py-2 w-full flex justify-between items-center">
         <p>{language}</p>
         <Button 
@@ -36,7 +36,7 @@ export const CodeBlock = ({ lang, code }: CodeBlockProps) => {
         </Button>
       </div>
       <pre className="hljs-pre">
-        <code className={`hljs language-${language}`} ref={ref} />
+        <code className={`hljs language-${language} `} ref={ref} />
       </pre>
     </div>
   );

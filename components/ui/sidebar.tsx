@@ -25,10 +25,13 @@
 import { useChatContext } from "@/context/chat/context";
 import { Button } from "./button";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export const Sidebar = () => {
   const { sessions, createSession } = useChatContext();
   const { push } = useRouter();
+ 
+  
 
   return (
     <div className="w-[250px] flex flex-col h-screen">
@@ -51,3 +54,7 @@ export const Sidebar = () => {
     </div>
   );
 };
+function clearSessions() {
+  throw new Error("Function not implemented.");
+}
+

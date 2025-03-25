@@ -11,7 +11,6 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  Command,
 } from "@/components/ui/command";
 // import { useRouter } from "next/router";
 import { useChatContext } from "../chat/context";
@@ -49,7 +48,9 @@ export const FiltersProvider = ({ children }: TFiltersProvider) => {
       {children}
 
       <CommandDialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-        <CommandInput placeholder="Search..." />
+        <CommandInput placeholder="Search..." setIsSearchActive={function (value: React.SetStateAction<boolean>): void {
+          throw new Error("Function not implemented.");
+        } } />
         <CommandList>
           <CommandEmpty>No results found.</CommandEmpty>
           <CommandGroup heading="Actions">

@@ -62,7 +62,7 @@ import { Groq } from "groq-sdk";
 
 const groq = new Groq({
   apiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY || "",
-  dangerouslyAllowBrowser: true
+  dangerouslyAllowBrowser: true,
 });
 
 import {
@@ -96,14 +96,15 @@ export const useLLM = ({ onStream, onStreamEnd, onStreamStart }: TUseLLM) => {
     const role = getRole(props.role);
     const instruction = getInstruction(props.type);
 
-    const previousMessages = messageHistory.map(msg => ({
+    const previousMessages = messageHistory.map((msg) => ({
       role: msg.rawHuman ? "user" : "assistant",
       content: msg.rawHuman || msg.rawAI,
     }));
 
-    const systemMessage = messageHistory?.length > 0
-      ? `You are ${role}. Answer user's question based on the following context:`
-      : props?.context
+    const systemMessage =
+      messageHistory?.length > 0
+        ? `You are ${role}. Answer user's question based on the following context:`
+        : props?.context
         ? `You are ${role}. Answer user's question based on the following context: ${props.context}`
         : `You are ${role}. ${instruction}`;
 
@@ -114,7 +115,7 @@ export const useLLM = ({ onStream, onStreamEnd, onStreamStart }: TUseLLM) => {
           role: msg.role as "system" | "user" | "assistant", // Explicitly set valid roles
           content: msg.content,
         })),
-        { role: "user", content: props.query || "" } as const
+        { role: "user", content: props.query || "" } as const,
       ],
     };
   };
@@ -125,17 +126,25 @@ export const useLLM = ({ onStream, onStreamEnd, onStreamStart }: TUseLLM) => {
     const currentSession = await getSessionById(sessionId);
     const newMessageId = v4();
 
-    const { messages } = await preparePrompt(props, currentSession?.messages || []);
+    const { messages } = await preparePrompt(
+      props,
+      currentSession?.messages || []
+    );
 
     try {
       onStreamStart();
 
       const completion = await groq.chat.completions.create({
         messages: messages as any, // Temporary fix if TypeScript still complains
-        model: "mixtral-8x7b-32768",
+        // model: "mixtral-8x7b-32768",
+        // model: "llama3.3-70b-versatile",
+        model: "llama3-8b-8192",
+       
+
+
         temperature: 0.7,
         max_tokens: 2048,
-        stream: true
+        stream: true,
       });
 
       let streamedMessages = "";
@@ -145,51 +154,43 @@ export const useLLM = ({ onStream, onStreamEnd, onStreamStart }: TUseLLM) => {
           const chunkText = chunk.choices[0].delta.content;
           streamedMessages += chunkText;
           await onStream({
-            props, sessionId, message: streamedMessages,
-            isLoading: undefined
+            props,
+            sessionId,
+            message: streamedMessages,
+            isLoading: undefined,
           });
         }
       }
 
       const formattedMessages = [
         new HumanMessage({ content: props.query || "" }),
-        new AIMessage({ content: streamedMessages })
+        new AIMessage({ content: streamedMessages }),
       ];
 
-      // const chatMessage: TChatMessage = {
-      //   messages: formattedMessages,
-      //   id: newMessageId,
-      //   model: ModelType.GROQ,
-      //   human: new HumanMessage({ content: props.query || "" }),
-      //   ai: new AIMessage({ content: streamedMessages }),
-      //   rawHuman: props.query || "",
-      //   rawAI: streamedMessages,
-      //   props,
-      //   createdAt: new Date().toISOString(),
-      // };
-const chatMessage: TChatMessage = {
-  messages: [
-    {
-      id: newMessageId,
-      model: ModelType.GROQ,
-      human: new HumanMessage({ content: props.query || "" }),
-      ai: new AIMessage({ content: streamedMessages }),
-      rawHuman: props.query || "",
-      rawAI: streamedMessages,
-      props,
-      createdAt: new Date().toISOString(),
-      messages: []
-    },
-  ],
-  id: newMessageId,
-  model: ModelType.GROQ,
-  human: new HumanMessage({ content: props.query || "" }),
-  ai: new AIMessage({ content: streamedMessages }),
-  rawHuman: props.query || "",
-  rawAI: streamedMessages,
-  props,
-  createdAt: new Date().toISOString(),
-};
+  
+      const chatMessage: TChatMessage = {
+        messages: [
+          {
+            id: newMessageId,
+            model: ModelType.GROQ,
+            human: new HumanMessage({ content: props.query || "" }),
+            ai: new AIMessage({ content: streamedMessages }),
+            rawHuman: props.query || "",
+            rawAI: streamedMessages,
+            props,
+            createdAt: new Date().toISOString(),
+            messages: [],
+          },
+        ],
+        id: newMessageId,
+        model: ModelType.GROQ,
+        human: new HumanMessage({ content: props.query || "" }),
+        ai: new AIMessage({ content: streamedMessages }),
+        rawHuman: props.query || "",
+        rawAI: streamedMessages,
+        props,
+        createdAt: new Date().toISOString(),
+      };
       await addMessageToSession(sessionId, chatMessage);
       onStreamEnd();
     } catch (error) {
